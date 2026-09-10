@@ -11,17 +11,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class EncodedPasswordTests {
 
-    @DisplayName("값이 비어 있지 않으면 인코딩된 비밀번호를 생성한다")
     @Test
+    @DisplayName("값이 비어 있지 않으면 인코딩된 비밀번호를 생성한다")
     void createsEncodedPasswordWhenValueIsNotBlank() {
         EncodedPassword encodedPassword = new EncodedPassword("encoded-password");
 
         assertThat(encodedPassword.value()).isEqualTo("encoded-password");
     }
 
-    @DisplayName("값이 비어 있으면 인코딩된 비밀번호를 생성할 수 없다")
-    @ParameterizedTest
     @NullSource
+    @ParameterizedTest
+    @DisplayName("값이 비어 있으면 인코딩된 비밀번호를 생성할 수 없다")
     @ValueSource(strings = {"", " ", "\t"})
     void rejectsBlankEncodedPassword(String value) {
         assertThatThrownBy(() -> new EncodedPassword(value))

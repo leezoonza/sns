@@ -11,8 +11,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MemberProfileTests {
 
-    @DisplayName("프로필 정보가 정책을 만족하면 회원 프로필을 생성한다")
     @Test
+    @DisplayName("프로필 정보가 정책을 만족하면 회원 프로필을 생성한다")
     void createsMemberProfileWhenValuesAreValid() {
         String username = "a".repeat(30);
         String displayName = "가".repeat(17);
@@ -31,9 +31,9 @@ class MemberProfileTests {
         assertThat(profile.profileImageUrl()).isEqualTo("https://example.com/profile.png");
     }
 
-    @DisplayName("사용자 이름이 정책을 만족하지 않으면 회원 프로필을 생성할 수 없다")
-    @ParameterizedTest
     @NullSource
+    @ParameterizedTest
+    @DisplayName("사용자 이름이 정책을 만족하지 않으면 회원 프로필을 생성할 수 없다")
     @ValueSource(strings = {"", "Member", "member-name", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"})
     void rejectsInvalidUsername(String username) {
         assertThatThrownBy(() -> createProfile(username, "표시 이름", null))
@@ -41,9 +41,9 @@ class MemberProfileTests {
                 .hasMessage("사용자 이름은 영문 소문자, 숫자, 점, 밑줄만 사용할 수 있습니다.");
     }
 
-    @DisplayName("이름이 비어 있으면 회원 프로필을 생성할 수 없다")
-    @ParameterizedTest
     @NullSource
+    @ParameterizedTest
+    @DisplayName("이름이 비어 있으면 회원 프로필을 생성할 수 없다")
     @ValueSource(strings = {"", " ", "\t"})
     void rejectsBlankDisplayName(String displayName) {
         assertThatThrownBy(() -> createProfile("member_name", displayName, null))
@@ -51,16 +51,16 @@ class MemberProfileTests {
                 .hasMessage("이름은 필수입니다.");
     }
 
-    @DisplayName("이름이 17자를 초과하면 회원 프로필을 생성할 수 없다")
     @Test
+    @DisplayName("이름이 17자를 초과하면 회원 프로필을 생성할 수 없다")
     void rejectsTooLongDisplayName() {
         assertThatThrownBy(() -> createProfile("member_name", "가".repeat(18), null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("이름은 17자 이하여야 합니다.");
     }
 
-    @DisplayName("소개글이 150자를 초과하면 회원 프로필을 생성할 수 없다")
     @Test
+    @DisplayName("소개글이 150자를 초과하면 회원 프로필을 생성할 수 없다")
     void rejectsTooLongBio() {
         assertThatThrownBy(() -> createProfile("member_name", "표시 이름", "가".repeat(151)))
                 .isInstanceOf(IllegalArgumentException.class)

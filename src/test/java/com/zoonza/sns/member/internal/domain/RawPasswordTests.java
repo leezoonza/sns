@@ -10,8 +10,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RawPasswordTests {
 
-    @DisplayName("값이 비밀번호 정책을 만족하면 원본 비밀번호를 생성한다")
     @ParameterizedTest
+    @DisplayName("값이 비밀번호 정책을 만족하면 원본 비밀번호를 생성한다")
     @ValueSource(strings = {"Abcde1!@", "Abcdefghijklmnopq1!@"})
     void createsRawPasswordWhenValueIsValid(String value) {
         RawPassword rawPassword = new RawPassword(value);
@@ -19,9 +19,9 @@ class RawPasswordTests {
         assertThat(rawPassword.value()).isEqualTo(value);
     }
 
-    @DisplayName("값이 비밀번호 정책을 만족하지 않으면 원본 비밀번호를 생성할 수 없다")
-    @ParameterizedTest
     @NullSource
+    @ParameterizedTest
+    @DisplayName("값이 비밀번호 정책을 만족하지 않으면 원본 비밀번호를 생성할 수 없다")
     @ValueSource(strings = {
             "Abcde1!",
             "Abcdefghijklmnopqr1!@",

@@ -10,8 +10,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class EmailTests {
 
-    @DisplayName("값이 이메일 형식에 맞으면 이메일을 생성한다")
     @ParameterizedTest
+    @DisplayName("값이 이메일 형식에 맞으면 이메일을 생성한다")
     @ValueSource(strings = {
             "member@example.com",
             "member.name_1-test@example-domain.co.kr"
@@ -22,9 +22,10 @@ class EmailTests {
         assertThat(email.value()).isEqualTo(value);
     }
 
-    @DisplayName("값이 이메일 형식에 맞지 않으면 이메일을 생성할 수 없다")
-    @ParameterizedTest
+
     @NullSource
+    @ParameterizedTest
+    @DisplayName("값이 이메일 형식에 맞지 않으면 이메일을 생성할 수 없다")
     @ValueSource(strings = {
             "",
             "memberexample.com",

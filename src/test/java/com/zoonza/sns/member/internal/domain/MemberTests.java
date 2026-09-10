@@ -11,8 +11,8 @@ class MemberTests {
 
     private final PasswordEncoder passwordEncoder = new FakePasswordEncoder();
 
-    @DisplayName("유효한 회원 정보가 주어지면 활성 상태의 회원을 생성한다")
     @Test
+    @DisplayName("유효한 회원 정보가 주어지면 활성 상태의 회원을 생성한다")
     void createsMember() {
         Member member = member().create(passwordEncoder);
 

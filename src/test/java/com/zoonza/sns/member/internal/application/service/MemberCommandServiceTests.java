@@ -32,8 +32,8 @@ class MemberCommandServiceTests {
         memberCommandService = new MemberCommandService(passwordEncoder, memberRepository);
     }
 
-    @DisplayName("중복되지 않은 회원 정보로 회원을 등록한다")
     @Test
+    @DisplayName("중복되지 않은 회원 정보로 회원을 등록한다")
     void registersMember() {
         RegisterMemberCommand command = createCommand();
         EncodedPassword encodedPassword = new EncodedPassword("encoded-password");
@@ -55,8 +55,8 @@ class MemberCommandServiceTests {
         assertThat(savedMember.getUpdatedAt()).isEqualTo(savedMember.getRegisteredAt());
     }
 
-    @DisplayName("이미 사용 중인 이메일이면 회원을 등록할 수 없다")
     @Test
+    @DisplayName("이미 사용 중인 이메일이면 회원을 등록할 수 없다")
     void rejectsDuplicateEmail() {
         RegisterMemberCommand command = createCommand();
         when(memberRepository.existsByEmail(command.email())).thenReturn(true);
@@ -71,8 +71,8 @@ class MemberCommandServiceTests {
         verifyNoInteractions(passwordEncoder);
     }
 
-    @DisplayName("이미 사용 중인 사용자 이름이면 회원을 등록할 수 없다")
     @Test
+    @DisplayName("이미 사용 중인 사용자 이름이면 회원을 등록할 수 없다")
     void rejectsDuplicateUsername() {
         RegisterMemberCommand command = createCommand();
         when(memberRepository.existsByUsername(command.profile().username())).thenReturn(true);

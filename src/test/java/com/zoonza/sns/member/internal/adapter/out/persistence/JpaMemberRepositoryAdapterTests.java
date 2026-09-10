@@ -20,8 +20,8 @@ class JpaMemberRepositoryAdapterTests {
     @Autowired
     private JpaMemberRepositoryAdapter memberRepository;
 
-    @DisplayName("회원을 저장하고 이메일과 사용자 이름의 존재 여부를 조회한다")
     @Test
+    @DisplayName("회원을 저장하고 이메일과 사용자 이름의 존재 여부를 조회한다")
     void savesAndChecksMemberExistence() {
         Member savedMember = memberRepository.save(member().create(new FakePasswordEncoder()));
 

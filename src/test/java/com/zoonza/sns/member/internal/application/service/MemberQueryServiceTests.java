@@ -26,8 +26,8 @@ class MemberQueryServiceTests {
         memberQueryService = new MemberQueryService(memberRepository);
     }
 
-    @DisplayName("이메일은 사용 중이지 않을 때만 사용할 수 있다")
     @ParameterizedTest
+    @DisplayName("이메일은 사용 중이지 않을 때만 사용할 수 있다")
     @CsvSource({"false, true", "true, false"})
     void checksEmailAvailability(boolean exists, boolean expectedAvailability) {
         Email email = new Email("member@example.com");
@@ -38,8 +38,8 @@ class MemberQueryServiceTests {
         assertThat(available).isEqualTo(expectedAvailability);
     }
 
-    @DisplayName("사용자 이름은 사용 중이지 않을 때만 사용할 수 있다")
     @ParameterizedTest
+    @DisplayName("사용자 이름은 사용 중이지 않을 때만 사용할 수 있다")
     @CsvSource({"false, true", "true, false"})
     void checksUsernameAvailability(boolean exists, boolean expectedAvailability) {
         String username = "member_name";

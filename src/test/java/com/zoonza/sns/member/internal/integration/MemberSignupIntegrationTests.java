@@ -38,8 +38,8 @@ class MemberSignupIntegrationTests {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @DisplayName("회원가입 요청은 비밀번호를 인코딩하고 회원을 데이터베이스에 저장한다")
     @Test
+    @DisplayName("회원가입 요청은 비밀번호를 인코딩하고 회원을 데이터베이스에 저장한다")
     void signsUpAndPersistsMember() throws Exception {
         RegisterMemberRequest request = registerMemberRequest().create();
 

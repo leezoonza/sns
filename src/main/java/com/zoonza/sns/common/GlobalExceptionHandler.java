@@ -24,7 +24,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .map(error -> error.getDefaultMessage())
                 .filter(errorMessage -> errorMessage != null && !errorMessage.isBlank())
                 .findFirst()
-                .orElse(CommonErrorCode.INVALID_REQUEST.getMessage());
+                .orElse(null);
+
         ProblemDetail problemDetail = getProblemDetail(CommonErrorCode.INVALID_REQUEST, message);
 
         return handleExceptionInternal(e, problemDetail, headers, status, request);
@@ -37,7 +38,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgumentException(IllegalArgumentException e) {
-        return getProblemDetail(CommonErrorCode.INVALID_REQUEST);
+        return getProblemDetail(CommonErrorCode.INVALID_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
@@ -50,10 +51,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private ProblemDetail getProblemDetail(ErrorCode errorCode, String message) {
+        String detail = message == null || message.isBlank()
+                ? errorCode.getMessage()
+                : message;
+
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatusCode.valueOf(errorCode.getStatus()),
-                message
+                detail
         );
+
         problemDetail.setProperty("code", errorCode.getCode());
 
         return problemDetail;

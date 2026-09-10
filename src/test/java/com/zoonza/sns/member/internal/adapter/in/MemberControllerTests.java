@@ -22,6 +22,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import static com.zoonza.sns.member.internal.fixture.RegisterMemberRequestFixture.registerMemberRequest;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -110,7 +111,7 @@ class MemberControllerTests {
                 .andExpect(jsonPath("$.code").value("COMMON-001"))
                 .andExpect(jsonPath("$.detail").value("이메일 형식이 올바르지 않습니다."));
 
-        verify(memberCommandUseCase, never()).register(org.mockito.ArgumentMatchers.any());
+        verify(memberCommandUseCase, never()).register(any());
     }
 
     @Test
@@ -119,7 +120,7 @@ class MemberControllerTests {
         RegisterMemberRequest request = registerMemberRequest().create();
         doThrow(new BusinessException(MemberErrorCode.DUPLICATE_EMAIL))
                 .when(memberCommandUseCase)
-                .register(org.mockito.ArgumentMatchers.any());
+                .register(any());
 
         mockMvc.perform(post("/api/members/signup")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -134,6 +135,20 @@ class MemberControllerTests {
     void rejectsInvalidEmailAvailabilityRequest() throws Exception {
         mockMvc.perform(get("/api/members/emails/availability")
                         .param("email", "invalid-email"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON-001"))
+                .andExpect(jsonPath("$.detail").value("이메일 형식이 올바르지 않습니다."));
+    }
+
+    @Test
+    @DisplayName("예외 메시지가 없으면 공통 기본 메시지를 응답한다")
+    void respondsWithDefaultMessageWhenExceptionMessageIsMissing() throws Exception {
+        String username = "member_name";
+        when(memberQueryUseCase.isUsernameAvailable(username))
+                .thenThrow(new IllegalArgumentException());
+
+        mockMvc.perform(get("/api/members/usernames/availability")
+                        .param("username", username))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("COMMON-001"))
                 .andExpect(jsonPath("$.detail").value("요청 값이 올바르지 않습니다."));

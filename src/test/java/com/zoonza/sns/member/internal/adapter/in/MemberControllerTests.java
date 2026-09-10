@@ -1,13 +1,13 @@
 package com.zoonza.sns.member.internal.adapter.in;
 
-import com.zoonza.sns.common.BusinessException;
-import com.zoonza.sns.common.GlobalExceptionHandler;
+import com.zoonza.sns.bootstrap.web.GlobalExceptionHandler;
 import com.zoonza.sns.member.internal.adapter.in.dto.request.RegisterMemberRequest;
 import com.zoonza.sns.member.internal.application.dto.RegisterMemberCommand;
 import com.zoonza.sns.member.internal.application.port.in.MemberCommandUseCase;
 import com.zoonza.sns.member.internal.application.port.in.MemberQueryUseCase;
 import com.zoonza.sns.member.internal.domain.Email;
 import com.zoonza.sns.member.internal.domain.MemberErrorCode;
+import com.zoonza.sns.shared.error.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

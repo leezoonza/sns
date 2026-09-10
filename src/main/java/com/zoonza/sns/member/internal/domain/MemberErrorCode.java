@@ -1,6 +1,6 @@
 package com.zoonza.sns.member.internal.domain;
 
-import com.zoonza.sns.common.ErrorCode;
+import com.zoonza.sns.shared.error.ErrorCode;
 
 public enum MemberErrorCode implements ErrorCode {
     DUPLICATE_EMAIL("USER-001", "이미 사용 중인 이메일입니다.", 409),

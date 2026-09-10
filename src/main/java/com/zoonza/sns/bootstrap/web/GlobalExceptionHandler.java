@@ -1,5 +1,7 @@
-package com.zoonza.sns.common;
+package com.zoonza.sns.bootstrap.web;
 
+import com.zoonza.sns.shared.error.BusinessException;
+import com.zoonza.sns.shared.error.ErrorCode;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;

@@ -1,4 +1,4 @@
-package com.zoonza.sns.global.security;
+package com.zoonza.sns.bootstrap.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

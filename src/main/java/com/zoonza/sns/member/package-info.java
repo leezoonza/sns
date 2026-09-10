@@ -1,5 +1,5 @@
 @ApplicationModule(
-        allowedDependencies = {"common"}
+        allowedDependencies = {"shared::error"}
 )
 package com.zoonza.sns.member;
 

@@ -1,4 +1,6 @@
-package com.zoonza.sns.common;
+package com.zoonza.sns.bootstrap.web;
+
+import com.zoonza.sns.shared.error.ErrorCode;
 
 public enum CommonErrorCode implements ErrorCode {
     INVALID_REQUEST("COMMON-001", "요청 값이 올바르지 않습니다.", 400),

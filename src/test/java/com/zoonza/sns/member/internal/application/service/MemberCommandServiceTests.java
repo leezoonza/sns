@@ -1,8 +1,8 @@
 package com.zoonza.sns.member.internal.application.service;
 
-import com.zoonza.sns.common.BusinessException;
 import com.zoonza.sns.member.internal.application.dto.RegisterMemberCommand;
 import com.zoonza.sns.member.internal.domain.*;
+import com.zoonza.sns.shared.error.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

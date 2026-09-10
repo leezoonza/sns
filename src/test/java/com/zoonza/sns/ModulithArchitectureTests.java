@@ -17,8 +17,12 @@ class ModulithArchitectureTests {
     }
 
     @Test
-    @DisplayName("멤버 기능은 독립된 애플리케이션 모듈이다")
-    void containsMemberModule() {
+    @DisplayName("부트스트랩, 공유 계약, 멤버 기능은 독립된 애플리케이션 모듈이다")
+    void containsExpectedModules() {
+        assertThat(modules.getModuleByName("bootstrap")).isPresent();
+        assertThat(modules.getModuleByName("shared")).isPresent();
         assertThat(modules.getModuleByName("member")).isPresent();
+        assertThat(modules.getModuleByName("common")).isEmpty();
+        assertThat(modules.getModuleByName("global")).isEmpty();
     }
 }

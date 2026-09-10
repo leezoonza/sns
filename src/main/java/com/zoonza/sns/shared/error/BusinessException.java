@@ -1,4 +1,4 @@
-package com.zoonza.sns.common;
+package com.zoonza.sns.shared.error;
 
 import lombok.Getter;
 

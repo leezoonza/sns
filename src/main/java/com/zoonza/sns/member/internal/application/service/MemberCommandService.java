@@ -1,9 +1,9 @@
 package com.zoonza.sns.member.internal.application.service;
 
-import com.zoonza.sns.common.BusinessException;
 import com.zoonza.sns.member.internal.application.dto.RegisterMemberCommand;
 import com.zoonza.sns.member.internal.application.port.in.MemberCommandUseCase;
 import com.zoonza.sns.member.internal.domain.*;
+import com.zoonza.sns.shared.error.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

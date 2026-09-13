@@ -74,7 +74,7 @@ public class Member {
 
     public static Member of(
             Email email,
-            RawPassword rawPassword,
+            NewPassword newPassword,
             MemberProfile profile,
             PasswordEncoder passwordEncoder
     ) {
@@ -82,7 +82,7 @@ public class Member {
 
         return new Member(
                 email,
-                passwordEncoder.encode(rawPassword),
+                passwordEncoder.encode(newPassword),
                 profile,
                 AccountVisibility.PUBLIC,
                 MemberStatus.ACTIVE,
@@ -92,5 +92,13 @@ public class Member {
                 null,
                 null
         );
+    }
+
+    public boolean verifyPassword(String rawPassword, PasswordEncoder passwordEncoder) {
+        return passwordEncoder.matches(rawPassword, this.encodedPassword);
+    }
+
+    public void updateLastLoginAt(Instant loggedInAt) {
+        this.lastLoginAt = loggedInAt;
     }
 }

@@ -51,7 +51,7 @@ public final class MemberFixture {
     public Member create(PasswordEncoder passwordEncoder) {
         return Member.of(
                 new Email(email),
-                new RawPassword(rawPassword),
+                new NewPassword(rawPassword),
                 new MemberProfile(username, displayName, bio, profileImageUrl),
                 passwordEncoder
         );

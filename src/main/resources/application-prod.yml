@@ -17,3 +17,15 @@ spring:
     properties:
       hibernate:
         format_sql: false
+
+auth:
+  cookie:
+    secure: true
+
+  token:
+    access-token:
+      secret: ${ACCESS_TOKEN_SECRET}
+      access-token-ttl: ${ACCESS_TOKEN_TTL}
+
+    refresh-token:
+      refresh-token-ttl: ${REFRESH_TOKEN_TTL}

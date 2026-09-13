@@ -2,22 +2,19 @@ package com.zoonza.sns.member.internal.domain;
 
 import com.zoonza.sns.shared.error.ErrorCode;
 
-public enum MemberErrorCode implements ErrorCode {
-    DUPLICATE_EMAIL("MEMBER-001", "이미 사용 중인 이메일입니다.", 409),
-    DUPLICATE_USERNAME("MEMBER-002", "이미 사용 중인 사용자 이름입니다.", 409),
-    WITHDRAWN_MEMBER("MEMBER-003", "탈퇴한 사용자입니다.", 403)
+public enum AuthErrorCode implements ErrorCode {
+    INVALID_CREDENTIAL("AUTH-001", "이메일 또는 비밀번호를 확인해 주세요", 401),
     ;
 
     private final String code;
     private final String message;
     private final int status;
 
-    MemberErrorCode(String code, String message, int status) {
+    AuthErrorCode(String code, String message, int status) {
         this.code = code;
         this.message = message;
         this.status = status;
     }
-
 
     @Override
     public String getCode() {

@@ -1,6 +1,6 @@
 package com.zoonza.sns.member.internal.application.port.in;
 
-import com.zoonza.sns.member.internal.application.dto.RegisterMemberCommand;
+import com.zoonza.sns.member.internal.application.dto.command.RegisterMemberCommand;
 
 public interface MemberCommandUseCase {
     void register(RegisterMemberCommand command);

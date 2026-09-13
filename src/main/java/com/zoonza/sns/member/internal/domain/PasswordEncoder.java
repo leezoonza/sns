@@ -1,7 +1,7 @@
 package com.zoonza.sns.member.internal.domain;
 
 public interface PasswordEncoder {
-    EncodedPassword encode(RawPassword rawPassword);
+    EncodedPassword encode(NewPassword newPassword);
 
-    boolean matches(RawPassword rawPassword, EncodedPassword encodedPassword);
+    boolean matches(String rawPassword, EncodedPassword encodedPassword);
 }

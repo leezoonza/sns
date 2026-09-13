@@ -3,7 +3,10 @@ package com.zoonza.sns.member.internal.integration;
 import com.zoonza.sns.TestcontainersConfiguration;
 import com.zoonza.sns.member.internal.adapter.in.dto.request.RegisterMemberRequest;
 import com.zoonza.sns.member.internal.adapter.out.persistence.MemberJpaRepository;
-import com.zoonza.sns.member.internal.domain.*;
+import com.zoonza.sns.member.internal.domain.AccountVisibility;
+import com.zoonza.sns.member.internal.domain.MemberRole;
+import com.zoonza.sns.member.internal.domain.MemberStatus;
+import com.zoonza.sns.member.internal.domain.PasswordEncoder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +61,7 @@ class MemberSignupIntegrationTests {
             assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
             assertThat(member.getRole()).isEqualTo(MemberRole.MEMBER);
             assertThat(passwordEncoder.matches(
-                    new RawPassword(request.rawPassword()),
+                    request.rawPassword(),
                     member.getEncodedPassword())
             ).isTrue();
         });

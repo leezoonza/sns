@@ -1,28 +1,24 @@
 package com.zoonza.sns.member.internal.application.service;
 
 import com.zoonza.sns.member.internal.domain.Email;
-import com.zoonza.sns.member.internal.domain.MemberRepository;
+import com.zoonza.sns.member.internal.fixture.FakeMemberRepository;
+import com.zoonza.sns.member.internal.fixture.FakePasswordEncoder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import static com.zoonza.sns.member.internal.fixture.MemberFixture.member;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class MemberQueryServiceTests {
 
-    @Mock
-    private MemberRepository memberRepository;
-
+    private FakeMemberRepository memberRepository;
     private MemberQueryService memberQueryService;
 
     @BeforeEach
     void setUp() {
+        memberRepository = new FakeMemberRepository();
         memberQueryService = new MemberQueryService(memberRepository);
     }
 
@@ -30,10 +26,11 @@ class MemberQueryServiceTests {
     @DisplayName("이메일은 사용 중이지 않을 때만 사용할 수 있다")
     @CsvSource({"false, true", "true, false"})
     void checksEmailAvailability(boolean exists, boolean expectedAvailability) {
-        Email email = new Email("member@example.com");
-        when(memberRepository.existsByEmail(email)).thenReturn(exists);
+        if (exists) {
+            memberRepository.save(member().create(new FakePasswordEncoder()));
+        }
 
-        boolean available = memberQueryService.isEmailAvailable(email);
+        boolean available = memberQueryService.isEmailAvailable(new Email("member@example.com"));
 
         assertThat(available).isEqualTo(expectedAvailability);
     }
@@ -42,10 +39,11 @@ class MemberQueryServiceTests {
     @DisplayName("사용자 이름은 사용 중이지 않을 때만 사용할 수 있다")
     @CsvSource({"false, true", "true, false"})
     void checksUsernameAvailability(boolean exists, boolean expectedAvailability) {
-        String username = "member_name";
-        when(memberRepository.existsByUsername(username)).thenReturn(exists);
+        if (exists) {
+            memberRepository.save(member().create(new FakePasswordEncoder()));
+        }
 
-        boolean available = memberQueryService.isUsernameAvailable(username);
+        boolean available = memberQueryService.isUsernameAvailable("member_name");
 
         assertThat(available).isEqualTo(expectedAvailability);
     }

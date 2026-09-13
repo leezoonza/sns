@@ -1,9 +1,9 @@
 package com.zoonza.sns.member.internal.adapter.in.dto.request;
 
-import com.zoonza.sns.member.internal.application.dto.RegisterMemberCommand;
+import com.zoonza.sns.member.internal.application.dto.command.RegisterMemberCommand;
 import com.zoonza.sns.member.internal.domain.Email;
 import com.zoonza.sns.member.internal.domain.MemberProfile;
-import com.zoonza.sns.member.internal.domain.RawPassword;
+import com.zoonza.sns.member.internal.domain.NewPassword;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -38,7 +38,7 @@ public record RegisterMemberRequest(
     public RegisterMemberCommand toCommand() {
         return new RegisterMemberCommand(
                 new Email(this.email),
-                new RawPassword(this.rawPassword),
+                new NewPassword(this.rawPassword),
                 new MemberProfile(
                         this.username,
                         this.displayName,

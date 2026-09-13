@@ -2,7 +2,7 @@ package com.zoonza.sns.member.internal.adapter.in;
 
 import com.zoonza.sns.bootstrap.web.GlobalExceptionHandler;
 import com.zoonza.sns.member.internal.adapter.in.dto.request.RegisterMemberRequest;
-import com.zoonza.sns.member.internal.application.dto.RegisterMemberCommand;
+import com.zoonza.sns.member.internal.application.dto.command.RegisterMemberCommand;
 import com.zoonza.sns.member.internal.application.port.in.MemberCommandUseCase;
 import com.zoonza.sns.member.internal.application.port.in.MemberQueryUseCase;
 import com.zoonza.sns.member.internal.domain.Email;
@@ -90,7 +90,7 @@ class MemberControllerTests {
 
         RegisterMemberCommand command = commandCaptor.getValue();
         assertThat(command.email().value()).isEqualTo("member@example.com");
-        assertThat(command.rawPassword().value()).isEqualTo("Abcde1!@");
+        assertThat(command.newPassword().value()).isEqualTo("Abcde1!@");
         assertThat(command.profile().username()).isEqualTo("member_name");
         assertThat(command.profile().displayName()).isEqualTo("표시 이름");
         assertThat(command.profile().bio()).isNull();
@@ -126,7 +126,7 @@ class MemberControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(request)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("USER-001"))
+                .andExpect(jsonPath("$.code").value("MEMBER-001"))
                 .andExpect(jsonPath("$.detail").value("이미 사용 중인 이메일입니다."));
     }
 

@@ -8,15 +8,15 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class RawPasswordTests {
+class NewPasswordTests {
 
     @ParameterizedTest
     @DisplayName("값이 비밀번호 정책을 만족하면 원본 비밀번호를 생성한다")
     @ValueSource(strings = {"Abcde1!@", "Abcdefghijklmnopq1!@"})
     void createsRawPasswordWhenValueIsValid(String value) {
-        RawPassword rawPassword = new RawPassword(value);
+        NewPassword newPassword = new NewPassword(value);
 
-        assertThat(rawPassword.value()).isEqualTo(value);
+        assertThat(newPassword.value()).isEqualTo(value);
     }
 
     @NullSource
@@ -30,7 +30,7 @@ class RawPasswordTests {
             "Abcdefg1"
     })
     void rejectsInvalidRawPassword(String value) {
-        assertThatThrownBy(() -> new RawPassword(value))
+        assertThatThrownBy(() -> new NewPassword(value))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("비밀번호는 8자 이상 20자 이하이며, 영문자, 숫자, 특수문자를 각각 하나 이상 포함해야 합니다.");
     }

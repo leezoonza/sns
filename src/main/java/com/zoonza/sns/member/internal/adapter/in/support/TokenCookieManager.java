@@ -10,24 +10,28 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @EnableConfigurationProperties(CookieProperties.class)
 public class TokenCookieManager {
+    private static final String COOKIE_NAME = "refreshToken";
+    private static final String SAME_SITE = "Lax";
+    private static final String PATH = "/api/auth";
+
     private final CookieProperties properties;
 
     public ResponseCookie createRefreshTokenCookie(RefreshToken refreshToken) {
-        return ResponseCookie.from("refreshToken", refreshToken.value())
+        return ResponseCookie.from(COOKIE_NAME, refreshToken.value())
                 .httpOnly(true)
                 .secure(properties.isSecure())
-                .sameSite("Lax")
-                .path("/api/auth")
+                .sameSite(SAME_SITE)
+                .path(PATH)
                 .maxAge(refreshToken.ttl())
                 .build();
     }
 
     public ResponseCookie clearRefreshTokenCookie() {
-        return ResponseCookie.from("refreshToken", "")
+        return ResponseCookie.from(COOKIE_NAME, "")
                 .httpOnly(true)
                 .secure(properties.isSecure())
-                .sameSite("Lax")
-                .path("/api/auth")
+                .sameSite(SAME_SITE)
+                .path(PATH)
                 .maxAge(0)
                 .build();
     }

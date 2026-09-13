@@ -90,4 +90,28 @@ class MemberLoginIntegrationTests {
                 .andExpect(header().doesNotExist("Set-Cookie"));
         assertThat(repository.findById(memberId).orElseThrow().getLastLoginAt()).isNull();
     }
+
+    @Test
+    @DisplayName("로그아웃하면 Redis의 리프레시 토큰을 삭제하고 쿠키를 만료한다")
+    void logsOutAndDeletesRefreshToken() throws Exception {
+        var loginResponse = mvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content(mapper.writeValueAsBytes(loginRequest().create())))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+        var refreshTokenCookie = loginResponse.getCookie("refreshToken");
+        refreshKey = "auth:refresh:token:" + refreshTokenCookie.getValue();
+        assertThat(redis.hasKey(refreshKey)).isTrue();
+
+        mvc.perform(post("/api/auth/logout").cookie(refreshTokenCookie))
+                .andExpect(status().isOk())
+                .andExpect(cookie().value("refreshToken", ""))
+                .andExpect(cookie().httpOnly("refreshToken", true))
+                .andExpect(cookie().secure("refreshToken", true))
+                .andExpect(cookie().path("refreshToken", "/api/auth"))
+                .andExpect(cookie().maxAge("refreshToken", 0));
+
+        assertThat(redis.hasKey(refreshKey)).isFalse();
+    }
 }

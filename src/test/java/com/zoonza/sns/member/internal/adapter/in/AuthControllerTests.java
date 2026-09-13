@@ -9,6 +9,7 @@ import com.zoonza.sns.member.internal.application.dto.result.TokenResult;
 import com.zoonza.sns.member.internal.application.port.in.MemberAuthUseCase;
 import com.zoonza.sns.member.internal.domain.AuthErrorCode;
 import com.zoonza.sns.shared.error.BusinessException;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -91,5 +92,34 @@ class AuthControllerTests {
                 .andExpect(jsonPath("$.code").value("AUTH-001"))
                 .andExpect(jsonPath("$.detail").value("이메일 또는 비밀번호를 확인해 주세요"))
                 .andExpect(header().doesNotExist("Set-Cookie"));
+    }
+
+    @Test
+    @DisplayName("로그아웃하면 리프레시 토큰을 삭제하고 쿠키를 만료한다")
+    void logout() throws Exception {
+        mvc.perform(post("/api/auth/logout")
+                        .cookie(new Cookie("refreshToken", "refresh")))
+                .andExpect(status().isOk())
+                .andExpect(cookie().value("refreshToken", ""))
+                .andExpect(cookie().httpOnly("refreshToken", true))
+                .andExpect(cookie().secure("refreshToken", true))
+                .andExpect(cookie().path("refreshToken", "/api/auth"))
+                .andExpect(cookie().maxAge("refreshToken", 0));
+
+        verify(auth).logout("refresh");
+    }
+
+    @Test
+    @DisplayName("리프레시 토큰 쿠키가 없어도 로그아웃하고 쿠키를 만료한다")
+    void logsOutWithoutRefreshTokenCookie() throws Exception {
+        mvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(cookie().value("refreshToken", ""))
+                .andExpect(cookie().httpOnly("refreshToken", true))
+                .andExpect(cookie().secure("refreshToken", true))
+                .andExpect(cookie().path("refreshToken", "/api/auth"))
+                .andExpect(cookie().maxAge("refreshToken", 0));
+
+        verify(auth).logout(isNull());
     }
 }

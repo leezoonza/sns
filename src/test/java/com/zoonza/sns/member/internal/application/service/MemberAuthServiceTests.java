@@ -79,6 +79,26 @@ class MemberAuthServiceTests {
         assertThat(member.getLastLoginAt()).isBetween(beforeLogin, Instant.now());
     }
 
+    @Test
+    @DisplayName("로그아웃하면 저장된 리프레시 토큰을 삭제한다")
+    void logsOut() {
+        refreshTokenStore.save(member.getId(), ISSUED_TOKEN.refreshToken());
+
+        memberAuthService.logout(ISSUED_TOKEN.refreshToken().value());
+
+        assertThat(refreshTokenStore.findByValue(ISSUED_TOKEN.refreshToken().value())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("리프레시 토큰이 없으면 저장소를 변경하지 않고 로그아웃한다")
+    void logsOutWithoutRefreshToken() {
+        refreshTokenStore.save(member.getId(), ISSUED_TOKEN.refreshToken());
+
+        memberAuthService.logout(null);
+
+        assertThat(refreshTokenStore.findByValue(ISSUED_TOKEN.refreshToken().value())).isPresent();
+    }
+
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "invalid-email"})
@@ -122,8 +142,15 @@ class MemberAuthServiceTests {
     @DisplayName("리프레시 토큰 저장 실패 시 로그인 시각을 갱신하지 않는다")
     void preservesLoginTimeWhenStoreFails() {
         var failure = new IllegalStateException("Redis unavailable");
-        RefreshTokenStore failingStore = (memberId, refreshToken) -> {
-            throw failure;
+        RefreshTokenStore failingStore = new RefreshTokenStore() {
+            @Override
+            public void save(Long memberId, RefreshToken refreshToken) {
+                throw failure;
+            }
+
+            @Override
+            public void delete(String refreshTokenValue) {
+            }
         };
         var serviceWithFailingStore = new MemberAuthService(
                 passwordEncoder,

@@ -19,6 +19,11 @@ public final class FakeRefreshTokenStore implements RefreshTokenStore {
         );
     }
 
+    @Override
+    public void delete(String refreshTokenValue) {
+        tokens.remove(refreshTokenValue);
+    }
+
     public Optional<StoredRefreshToken> findByValue(String refreshTokenValue) {
         return Optional.ofNullable(tokens.get(refreshTokenValue));
     }

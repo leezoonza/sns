@@ -43,6 +43,15 @@ public class MemberAuthService implements MemberAuthUseCase {
         );
     }
 
+    @Override
+    public void logout(String refreshTokenValue) {
+        if (refreshTokenValue == null) {
+            return;
+        }
+
+        refreshTokenStore.delete(refreshTokenValue);
+    }
+
     private Member requireMember(String email) {
         return memberRepository.findByEmail(parseEmail(email))
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.INVALID_CREDENTIAL));

@@ -24,6 +24,11 @@ public class RedisRefreshTokenStoreAdapter implements RefreshTokenStore {
                 );
     }
 
+    @Override
+    public void delete(String refreshTokenValue) {
+        redisTemplate.delete(createKey(refreshTokenValue));
+    }
+
     private String createKey(String refreshTokenValue) {
         return KEY_PREFIX + refreshTokenValue;
     }

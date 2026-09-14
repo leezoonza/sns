@@ -20,6 +20,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.zoonza.sns.member.internal.fixture.LoginRequestFixture.loginRequest;
@@ -38,7 +40,7 @@ class MemberLoginIntegrationTests {
     @Autowired PasswordEncoder encoder;
     @Autowired StringRedisTemplate redis;
     private Long memberId;
-    private String refreshKey;
+    private final Set<String> refreshKeys = new HashSet<>();
 
     @BeforeEach
     void setUp() {
@@ -47,9 +49,7 @@ class MemberLoginIntegrationTests {
 
     @AfterEach
     void cleanUp() {
-        if (refreshKey != null) {
-            redis.delete(refreshKey);
-        }
+        redis.delete(refreshKeys);
         repository.deleteById(memberId);
     }
 
@@ -63,8 +63,10 @@ class MemberLoginIntegrationTests {
                 .andExpect(cookie().httpOnly("refreshToken", true))
                 .andExpect(cookie().secure("refreshToken", true))
                 .andReturn().getResponse();
+
         String accessToken = mapper.readTree(response.getContentAsString()).get("accessTokenValue").asText();
         var jwt = SignedJWT.parse(accessToken);
+
         assertThat(jwt.verify(new com.nimbusds.jose.crypto.MACVerifier(
                 "test-only-secret-key-at-least-32-bytes-long"))).isTrue();
         assertThat(jwt.getJWTClaimsSet().getSubject()).isEqualTo(memberId.toString());
@@ -72,9 +74,12 @@ class MemberLoginIntegrationTests {
         assertThat(jwt.getJWTClaimsSet().getExpirationTime().toInstant())
                 .isEqualTo(jwt.getJWTClaimsSet().getIssueTime().toInstant().plusSeconds(900));
 
-        refreshKey = "auth:refresh:token:" + response.getCookie("refreshToken").getValue();
+        String refreshKey = "auth:refresh:token:" + response.getCookie("refreshToken").getValue();
+        refreshKeys.add(refreshKey);
+
         assertThat(redis.opsForValue().get(refreshKey)).isEqualTo(memberId.toString());
         assertThat(redis.getExpire(refreshKey, TimeUnit.SECONDS)).isBetween(1209500L, 1209600L);
+
         Instant lastLoginAt = repository.findById(memberId).orElseThrow().getLastLoginAt();
         assertThat(lastLoginAt).isBetween(before, Instant.now());
         assertThat(jwt.getJWTClaimsSet().getIssueTime().toInstant())
@@ -95,6 +100,53 @@ class MemberLoginIntegrationTests {
     }
 
     @Test
+    @DisplayName("토큰을 재발급하면 기존 토큰을 폐기하고 새 JWT와 리프레시 토큰을 발급한다")
+    void reissuesAndRotatesTokens() throws Exception {
+        var loginResponse = mvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content(mapper.writeValueAsBytes(loginRequest().create())))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+        var oldRefreshTokenCookie = loginResponse.getCookie("refreshToken");
+        String oldRefreshKey = "auth:refresh:token:" + oldRefreshTokenCookie.getValue();
+        refreshKeys.add(oldRefreshKey);
+
+        var reissueResponse = mvc.perform(post("/api/auth/reissue").cookie(oldRefreshTokenCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessTokenValue").isNotEmpty())
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andExpect(cookie().httpOnly("refreshToken", true))
+                .andExpect(cookie().secure("refreshToken", true))
+                .andExpect(cookie().path("refreshToken", "/api/auth"))
+                .andExpect(cookie().maxAge("refreshToken", 1209600))
+                .andReturn()
+                .getResponse();
+
+        var newRefreshTokenCookie = reissueResponse.getCookie("refreshToken");
+        String newRefreshKey = "auth:refresh:token:" + newRefreshTokenCookie.getValue();
+        refreshKeys.add(newRefreshKey);
+
+        assertThat(newRefreshTokenCookie.getValue()).isNotEqualTo(oldRefreshTokenCookie.getValue());
+        assertThat(redis.hasKey(oldRefreshKey)).isFalse();
+        assertThat(redis.opsForValue().get(newRefreshKey)).isEqualTo(memberId.toString());
+
+        String accessToken = mapper.readTree(reissueResponse.getContentAsString())
+                .get("accessTokenValue")
+                .asText();
+
+        var jwt = SignedJWT.parse(accessToken);
+        assertThat(jwt.getJWTClaimsSet().getSubject()).isEqualTo(memberId.toString());
+        assertThat(jwt.getJWTClaimsSet().getStringClaim("role")).isEqualTo("MEMBER");
+
+        mvc.perform(post("/api/auth/reissue").cookie(oldRefreshTokenCookie))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTH-002"))
+                .andExpect(jsonPath("$.detail").value("인증이 만료되었습니다. 다시 로그인해 주세요."))
+                .andExpect(header().doesNotExist("Set-Cookie"));
+    }
+
+    @Test
     @DisplayName("로그아웃하면 Redis의 리프레시 토큰을 삭제하고 쿠키를 만료한다")
     void logsOutAndDeletesRefreshToken() throws Exception {
         var loginResponse = mvc.perform(post("/api/auth/login")
@@ -104,7 +156,9 @@ class MemberLoginIntegrationTests {
                 .andReturn()
                 .getResponse();
         var refreshTokenCookie = loginResponse.getCookie("refreshToken");
-        refreshKey = "auth:refresh:token:" + refreshTokenCookie.getValue();
+        String refreshKey = "auth:refresh:token:" + refreshTokenCookie.getValue();
+        refreshKeys.add(refreshKey);
+
         assertThat(redis.hasKey(refreshKey)).isTrue();
 
         mvc.perform(post("/api/auth/logout").cookie(refreshTokenCookie))

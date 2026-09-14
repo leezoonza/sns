@@ -32,4 +32,9 @@ public class JpaMemberRepositoryAdapter implements MemberRepository {
     public Optional<Member> findByEmail(Email email) {
         return jpaRepository.findByEmail(email);
     }
+
+    @Override
+    public Optional<Member> findById(Long memberId) {
+        return jpaRepository.findById(memberId);
+    }
 }

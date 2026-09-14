@@ -51,6 +51,32 @@ public class MemberAuthService implements MemberAuthUseCase {
     }
 
     @Override
+    public TokenResult reissue(String refreshTokenValue) {
+        Long memberId = refreshTokenStore.consume(refreshTokenValue)
+                .orElseThrow(() -> new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+
+        Instant loginAt = Instant.now();
+        IssuedToken issuedToken = tokenProvider.issue(
+                member.getId(),
+                member.getRole().name(),
+                loginAt
+        );
+
+        refreshTokenStore.save(
+                member.getId(),
+                issuedToken.refreshToken()
+        );
+
+        return new TokenResult(
+                issuedToken.accessToken(),
+                issuedToken.refreshToken()
+        );
+    }
+
+    @Override
     public void logout(String refreshTokenValue) {
         if (refreshTokenValue == null) {
             return;

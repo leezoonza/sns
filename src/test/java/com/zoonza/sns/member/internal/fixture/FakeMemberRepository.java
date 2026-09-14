@@ -46,6 +46,11 @@ public final class FakeMemberRepository implements MemberRepository {
                 .findFirst();
     }
 
+    @Override
+    public Optional<Member> findById(Long memberId) {
+        return Optional.ofNullable(members.get(memberId));
+    }
+
     public List<Member> findAll() {
         return List.copyOf(members.values());
     }

@@ -95,6 +95,57 @@ class AuthControllerTests {
     }
 
     @Test
+    @DisplayName("리프레시 토큰을 재발급하면 새 액세스 토큰과 HttpOnly 리프레시 쿠키를 반환한다")
+    void reissuesTokens() throws Exception {
+        when(auth.reissue("old-refresh")).thenReturn(new TokenResult(
+                new AccessToken("new-access"), new RefreshToken("new-refresh", Duration.ofDays(14))));
+
+        mvc.perform(post("/api/auth/reissue")
+                        .cookie(new Cookie("refreshToken", "old-refresh")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessTokenValue").value("new-access"))
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andExpect(cookie().value("refreshToken", "new-refresh"))
+                .andExpect(cookie().httpOnly("refreshToken", true))
+                .andExpect(cookie().secure("refreshToken", true))
+                .andExpect(cookie().path("refreshToken", "/api/auth"))
+                .andExpect(cookie().maxAge("refreshToken", 1209600));
+
+        verify(auth).reissue("old-refresh");
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 리프레시 토큰은 오류 메시지를 반환하고 쿠키를 발급하지 않는다")
+    void rejectsInvalidRefreshToken() throws Exception {
+        when(auth.reissue("invalid-refresh"))
+                .thenThrow(new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+
+        mvc.perform(post("/api/auth/reissue")
+                        .cookie(new Cookie("refreshToken", "invalid-refresh")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTH-002"))
+                .andExpect(jsonPath("$.detail").value("인증이 만료되었습니다. 다시 로그인해 주세요."))
+                .andExpect(header().doesNotExist("Set-Cookie"));
+
+        verify(auth).reissue("invalid-refresh");
+    }
+
+    @Test
+    @DisplayName("리프레시 토큰 쿠키가 없으면 인증 만료 오류를 반환한다")
+    void rejectsMissingRefreshTokenCookie() throws Exception {
+        when(auth.reissue(isNull()))
+                .thenThrow(new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+
+        mvc.perform(post("/api/auth/reissue"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTH-002"))
+                .andExpect(jsonPath("$.detail").value("인증이 만료되었습니다. 다시 로그인해 주세요."))
+                .andExpect(header().doesNotExist("Set-Cookie"));
+
+        verify(auth).reissue(isNull());
+    }
+
+    @Test
     @DisplayName("로그아웃하면 리프레시 토큰을 삭제하고 쿠키를 만료한다")
     void logout() throws Exception {
         mvc.perform(post("/api/auth/logout")

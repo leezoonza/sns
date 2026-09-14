@@ -20,6 +20,12 @@ public final class FakeRefreshTokenStore implements RefreshTokenStore {
     }
 
     @Override
+    public Optional<Long> consume(String refreshTokenValue) {
+        return Optional.ofNullable(tokens.remove(refreshTokenValue))
+                .map(StoredRefreshToken::memberId);
+    }
+
+    @Override
     public void delete(String refreshTokenValue) {
         tokens.remove(refreshTokenValue);
     }

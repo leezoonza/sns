@@ -25,6 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 
 import static com.zoonza.sns.member.internal.fixture.MemberFixture.member;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +39,8 @@ class MemberAuthServiceTests {
             new AccessToken("access"),
             new RefreshToken("refresh", Duration.ofDays(14))
     );
+    private static final RefreshToken OLD_REFRESH_TOKEN =
+            new RefreshToken("old-refresh", Duration.ofDays(14));
 
     private FakePasswordEncoder passwordEncoder;
     private FakeMemberRepository memberRepository;
@@ -78,6 +81,53 @@ class MemberAuthServiceTests {
             assertThat(storedToken.refreshToken()).isEqualTo(ISSUED_TOKEN.refreshToken());
         });
         assertThat(member.getLastLoginAt()).isBetween(beforeLogin, Instant.now());
+    }
+
+    @Test
+    @DisplayName("유효한 리프레시 토큰을 소비하고 새 토큰을 발급해 저장한다")
+    void reissuesTokens() {
+        refreshTokenStore.save(member.getId(), OLD_REFRESH_TOKEN);
+        Instant beforeReissue = Instant.now();
+
+        var result = memberAuthService.reissue(OLD_REFRESH_TOKEN.value());
+
+        assertThat(result.accessToken()).isEqualTo(ISSUED_TOKEN.accessToken());
+        assertThat(result.refreshToken()).isEqualTo(ISSUED_TOKEN.refreshToken());
+        assertThat(refreshTokenStore.findByValue(OLD_REFRESH_TOKEN.value())).isEmpty();
+        assertThat(refreshTokenStore.findByValue(ISSUED_TOKEN.refreshToken().value()))
+                .hasValueSatisfying(storedToken -> {
+                    assertThat(storedToken.memberId()).isEqualTo(member.getId());
+                    assertThat(storedToken.refreshToken()).isEqualTo(ISSUED_TOKEN.refreshToken());
+                });
+        assertThat(tokenProvider.requestedMemberId()).isEqualTo(member.getId());
+        assertThat(tokenProvider.requestedMemberRole()).isEqualTo("MEMBER");
+        assertThat(tokenProvider.requestedIssuedAt()).isBetween(beforeReissue, Instant.now());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"", "invalid-refresh"})
+    @DisplayName("저장되지 않은 리프레시 토큰은 인증 만료 오류로 거절한다")
+    void rejectsInvalidRefreshToken(String refreshTokenValue) {
+        assertThatThrownBy(() -> memberAuthService.reissue(refreshTokenValue))
+                .isInstanceOfSatisfying(BusinessException.class, exception ->
+                        assertThat(exception.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN));
+
+        assertNoIssuedToken();
+        assertThat(refreshTokenStore.isEmpty()).isTrue();
+    }
+
+    @Test
+    @DisplayName("리프레시 토큰의 회원이 없으면 토큰을 소비하고 인증 만료 오류로 거절한다")
+    void rejectsRefreshTokenForMissingMember() {
+        refreshTokenStore.save(999L, OLD_REFRESH_TOKEN);
+
+        assertThatThrownBy(() -> memberAuthService.reissue(OLD_REFRESH_TOKEN.value()))
+                .isInstanceOfSatisfying(BusinessException.class, exception ->
+                        assertThat(exception.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN));
+
+        assertThat(refreshTokenStore.findByValue(OLD_REFRESH_TOKEN.value())).isEmpty();
+        assertNoIssuedToken();
     }
 
     @Test
@@ -150,6 +200,11 @@ class MemberAuthServiceTests {
             }
 
             @Override
+            public Optional<Long> consume(String refreshTokenValue) {
+                return Optional.empty();
+            }
+
+            @Override
             public void delete(String refreshTokenValue) {
             }
         };
@@ -170,10 +225,14 @@ class MemberAuthServiceTests {
     }
 
     private void assertNoAuthenticationResult() {
+        assertNoIssuedToken();
+        assertThat(refreshTokenStore.isEmpty()).isTrue();
+        assertThat(member.getLastLoginAt()).isNull();
+    }
+
+    private void assertNoIssuedToken() {
         assertThat(tokenProvider.requestedMemberId()).isNull();
         assertThat(tokenProvider.requestedMemberRole()).isNull();
         assertThat(tokenProvider.requestedIssuedAt()).isNull();
-        assertThat(refreshTokenStore.isEmpty()).isTrue();
-        assertThat(member.getLastLoginAt()).isNull();
     }
 }

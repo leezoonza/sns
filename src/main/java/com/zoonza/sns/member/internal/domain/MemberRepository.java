@@ -10,4 +10,6 @@ public interface MemberRepository {
     Member save(Member member);
 
     Optional<Member> findByEmail(Email email);
+
+    Optional<Member> findById(Long memberId);
 }

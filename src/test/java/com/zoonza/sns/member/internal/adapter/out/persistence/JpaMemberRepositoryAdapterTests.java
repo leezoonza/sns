@@ -21,11 +21,13 @@ class JpaMemberRepositoryAdapterTests {
     private JpaMemberRepositoryAdapter memberRepository;
 
     @Test
-    @DisplayName("회원을 저장하고 이메일과 사용자 이름의 존재 여부를 조회한다")
+    @DisplayName("회원을 저장하고 ID, 이메일과 사용자 이름으로 조회한다")
     void savesAndChecksMemberExistence() {
         Member savedMember = memberRepository.save(member().create(new FakePasswordEncoder()));
 
         assertThat(savedMember.getId()).isNotNull();
+        assertThat(memberRepository.findById(savedMember.getId())).contains(savedMember);
+        assertThat(memberRepository.findById(Long.MAX_VALUE)).isEmpty();
         assertThat(memberRepository.existsByEmail(new Email("member@example.com"))).isTrue();
         assertThat(memberRepository.existsByEmail(new Email("other@example.com"))).isFalse();
         assertThat(memberRepository.existsByUsername("member_name")).isTrue();

@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class RedisRefreshTokenStoreAdapter implements RefreshTokenStore {
@@ -22,6 +24,16 @@ public class RedisRefreshTokenStoreAdapter implements RefreshTokenStore {
                     memberId.toString(),
                     refreshToken.ttl()
                 );
+    }
+
+    @Override
+    public Optional<Long> consume(String refreshTokenValue) {
+        String memberId = redisTemplate
+                .opsForValue()
+                .getAndDelete(createKey(refreshTokenValue));
+
+        return Optional.ofNullable(memberId)
+                .map(Long::valueOf);
     }
 
     @Override

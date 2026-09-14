@@ -2,6 +2,7 @@ package com.zoonza.sns.member.internal.adapter.in;
 
 import com.zoonza.sns.member.internal.adapter.in.dto.request.LoginRequest;
 import com.zoonza.sns.member.internal.adapter.in.dto.response.LoginResponse;
+import com.zoonza.sns.member.internal.adapter.in.dto.response.ReissueResponse;
 import com.zoonza.sns.member.internal.adapter.in.support.TokenCookieManager;
 import com.zoonza.sns.member.internal.application.dto.result.TokenResult;
 import com.zoonza.sns.member.internal.application.port.in.MemberAuthUseCase;
@@ -29,6 +30,18 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new LoginResponse(result.accessToken().value()));
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<ReissueResponse> reissue(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken
+    ) {
+        TokenResult result = memberAuthUseCase.reissue(refreshToken);
+        ResponseCookie cookie = tokenCookieManager.createRefreshTokenCookie(result.refreshToken());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new ReissueResponse(result.accessToken().value()));
     }
 
     @PostMapping("/logout")

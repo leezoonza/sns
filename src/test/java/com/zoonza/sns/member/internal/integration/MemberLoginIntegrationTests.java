@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
 import static com.zoonza.sns.member.internal.fixture.LoginRequestFixture.loginRequest;
@@ -74,8 +75,10 @@ class MemberLoginIntegrationTests {
         refreshKey = "auth:refresh:token:" + response.getCookie("refreshToken").getValue();
         assertThat(redis.opsForValue().get(refreshKey)).isEqualTo(memberId.toString());
         assertThat(redis.getExpire(refreshKey, TimeUnit.SECONDS)).isBetween(1209500L, 1209600L);
-        assertThat(repository.findById(memberId).orElseThrow().getLastLoginAt())
-                .isBetween(before, Instant.now());
+        Instant lastLoginAt = repository.findById(memberId).orElseThrow().getLastLoginAt();
+        assertThat(lastLoginAt).isBetween(before, Instant.now());
+        assertThat(jwt.getJWTClaimsSet().getIssueTime().toInstant())
+                .isEqualTo(lastLoginAt.truncatedTo(ChronoUnit.SECONDS));
     }
 
     @ParameterizedTest

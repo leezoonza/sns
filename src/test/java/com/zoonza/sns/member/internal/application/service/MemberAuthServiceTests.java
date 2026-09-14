@@ -72,6 +72,7 @@ class MemberAuthServiceTests {
         assertThat(result.refreshToken()).isEqualTo(ISSUED_TOKEN.refreshToken());
         assertThat(tokenProvider.requestedMemberId()).isEqualTo(member.getId());
         assertThat(tokenProvider.requestedMemberRole()).isEqualTo("MEMBER");
+        assertThat(tokenProvider.requestedIssuedAt()).isEqualTo(member.getLastLoginAt());
         assertThat(refreshTokenStore.findByValue("refresh")).hasValueSatisfying(storedToken -> {
             assertThat(storedToken.memberId()).isEqualTo(member.getId());
             assertThat(storedToken.refreshToken()).isEqualTo(ISSUED_TOKEN.refreshToken());
@@ -139,8 +140,8 @@ class MemberAuthServiceTests {
     }
 
     @Test
-    @DisplayName("리프레시 토큰 저장 실패 시 로그인 시각을 갱신하지 않는다")
-    void preservesLoginTimeWhenStoreFails() {
+    @DisplayName("리프레시 토큰 저장 실패를 그대로 전파한다")
+    void propagatesRefreshTokenStoreFailure() {
         var failure = new IllegalStateException("Redis unavailable");
         RefreshTokenStore failingStore = new RefreshTokenStore() {
             @Override
@@ -160,7 +161,6 @@ class MemberAuthServiceTests {
         );
 
         assertThatThrownBy(() -> serviceWithFailingStore.login(LOGIN_COMMAND)).isSameAs(failure);
-        assertThat(member.getLastLoginAt()).isNull();
     }
 
     private void assertError(LoginCommand command, ErrorCode errorCode) {
@@ -172,6 +172,7 @@ class MemberAuthServiceTests {
     private void assertNoAuthenticationResult() {
         assertThat(tokenProvider.requestedMemberId()).isNull();
         assertThat(tokenProvider.requestedMemberRole()).isNull();
+        assertThat(tokenProvider.requestedIssuedAt()).isNull();
         assertThat(refreshTokenStore.isEmpty()).isTrue();
         assertThat(member.getLastLoginAt()).isNull();
     }

@@ -22,10 +22,9 @@ public class JwtAccessTokenGenerator {
     public String generate(
             Long memberId,
             String memberRole,
+            Instant issuedAt,
             Duration ttl
     ) {
-        Instant issuedAt = Instant.now();
-
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(memberId.toString())
                 .claim(ROLE_CLAIM, memberRole)

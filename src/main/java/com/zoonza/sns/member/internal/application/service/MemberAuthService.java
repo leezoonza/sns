@@ -30,12 +30,19 @@ public class MemberAuthService implements MemberAuthUseCase {
 
         validatePassword(member, command.rawPassword());
 
-        requireActiveMember(member);
+        Instant loginAt = Instant.now();
+        recordLoginAt(member, loginAt);
 
-        IssuedToken issuedToken = tokenProvider.issue(member.getId(), member.getRole().name());
-        refreshTokenStore.save(member.getId(), issuedToken.refreshToken());
+        IssuedToken issuedToken = tokenProvider.issue(
+                member.getId(),
+                member.getRole().name(),
+                loginAt
+        );
 
-        member.updateLastLoginAt(Instant.now());
+        refreshTokenStore.save(
+                member.getId(),
+                issuedToken.refreshToken()
+        );
 
         return new TokenResult(
                 issuedToken.accessToken(),
@@ -71,9 +78,9 @@ public class MemberAuthService implements MemberAuthUseCase {
         }
     }
 
-    private void requireActiveMember(Member member) {
+    private void recordLoginAt(Member member, Instant loginAt) {
         switch (member.getStatus()) {
-            case ACTIVE -> {}
+            case ACTIVE -> member.recordLoginAt(loginAt);
             case WITHDRAWN -> throw new BusinessException(MemberErrorCode.WITHDRAWN_MEMBER);
         }
     }

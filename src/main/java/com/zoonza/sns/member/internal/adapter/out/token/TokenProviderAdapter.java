@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+
 @Component
 @EnableConfigurationProperties(RefreshTokenProperties.class)
 @RequiredArgsConstructor
@@ -18,10 +20,15 @@ public class TokenProviderAdapter implements TokenProvider {
     private final SecureRefreshTokenGenerator refreshTokenGenerator;
 
     @Override
-    public IssuedToken issue(Long memberId, String memberRole) {
+    public IssuedToken issue(
+            Long memberId,
+            String memberRole,
+            Instant issuedAt
+    ) {
         String accessTokenValue = accessTokenGenerator.generate(
                 memberId,
                 memberRole,
+                issuedAt,
                 accessTokenProperties.getAccessTokenTtl()
         );
 

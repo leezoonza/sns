@@ -49,7 +49,7 @@ class MemberTests {
         Member member = member().create(passwordEncoder);
         Instant loggedInAt = Instant.parse("2026-09-13T12:34:56Z");
 
-        member.updateLastLoginAt(loggedInAt);
+        member.recordLoginAt(loggedInAt);
 
         assertThat(member.getLastLoginAt()).isEqualTo(loggedInAt);
     }

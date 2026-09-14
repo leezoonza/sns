@@ -98,7 +98,7 @@ public class Member {
         return passwordEncoder.matches(rawPassword, this.encodedPassword);
     }
 
-    public void updateLastLoginAt(Instant loggedInAt) {
-        this.lastLoginAt = loggedInAt;
+    public void recordLoginAt(Instant loginAt) {
+        this.lastLoginAt = loginAt;
     }
 }

@@ -1,5 +1,7 @@
 package com.zoonza.sns.member.internal.adapter.in;
 
+import com.zoonza.sns.bootstrap.security.ApiAccessDeniedHandler;
+import com.zoonza.sns.bootstrap.security.ApiAuthenticationEntryPoint;
 import com.zoonza.sns.bootstrap.security.ApiSecurityConfiguration;
 import com.zoonza.sns.bootstrap.web.GlobalExceptionHandler;
 import com.zoonza.sns.member.internal.adapter.in.support.TokenCookieManager;
@@ -18,6 +20,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
@@ -30,11 +33,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
-@Import({GlobalExceptionHandler.class, ApiSecurityConfiguration.class, TokenCookieManager.class})
+@Import({
+        GlobalExceptionHandler.class,
+        ApiSecurityConfiguration.class,
+        ApiAuthenticationEntryPoint.class,
+        ApiAccessDeniedHandler.class,
+        TokenCookieManager.class
+})
 class AuthControllerTests {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @MockitoBean MemberAuthUseCase auth;
+    @MockitoBean JwtDecoder jwtDecoder;
 
     @Test
     @DisplayName("익명 로그인 요청에 액세스 토큰과 HttpOnly 리프레시 쿠키를 반환한다")
